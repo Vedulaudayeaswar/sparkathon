@@ -1,0 +1,1123 @@
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniRetail AI | Walmart Tech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark {
+            background-color: #111827;
+            color: #f3f4f6;
+        }
+        
+        .dark .bg-white {
+            background-color: #1f2937;
+        }
+        
+        .dark .text-gray-900 {
+            color: #f3f4f6;
+        }
+        
+        .dark .text-gray-500 {
+            color: #9ca3af;
+        }
+        
+        .dark .bg-gray-50 {
+            background-color: #374151;
+        }
+        
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+        }
+        
+        .card-3d:hover {
+            transform: rotateY(10deg) rotateX(5deg) translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .try-on-viewer {
+            perspective: 1000px;
+        }
+        
+        .ar-container {
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-20px) rotateY(10deg); }
+            100% { transform: translateY(0px) rotateY(0deg); }
+        }
+        
+        .chatbot-bubble {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .login-container {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-message.user {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            align-self: flex-end;
+            max-width: 90%;
+        }
+        .chat-message.bot {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            border-radius: 18px 18px 18px 4px;
+            align-self: flex-start;
+            max-width: 90%;
+        }
+        .dark .chat-message.bot {
+            background-color: #374151;
+            color: #f3f4f6;
+        }
+        .chat-typing-indicator {
+            display: inline-flex;
+            align-items: center;
+        }
+        .chat-typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.2s infinite;
+        }
+        .chat-typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .chat-typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        .chat-container {
+            transition: all 0.3s ease;
+            transform-origin: bottom right;
+        }
+        
+        /* PRODUCT STYLING */
+        .product-results {
+            padding: 10px;
+        }
+        
+        .product-result {
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .product-result img {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 8px;
+            margin: 10px 0;
+            object-fit: contain;
+            display: block;
+            background-color: #fff;
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .product-result .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .product-result .product-price {
+            font-weight: 700;
+            color: #065f46;
+            font-size: 1.1rem;
+        }
+        
+        .product-result .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 8px 0;
+        }
+        
+        .product-result .product-rating .stars {
+            color: #f59e0b;
+        }
+        
+        .product-result .product-offer {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        
+        .product-result .buy-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .product-result .buy-link:hover {
+            background-color: #2563eb;
+        }
+        
+        .product-result .add-to-cart-hint {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 8px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navbar Component -->
+    <nav class="bg-blue-600 text-white shadow-lg" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img class="h-8 w-auto" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Walmart_Spark.svg/1200px-Walmart_Spark.svg.png" alt="Walmart Logo">
+                        <span class="ml-2 text-xl font-bold">OmniRetail AI</span>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="#home" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition">Home</a>
+                            <a href="#products" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition">Products</a>
+                            <a href="#ar" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition">Virtual Try-On</a>
+                            <a href="#admin" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition">Admin</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-4 flex items-center md:ml-6">
+                        <button id="theme-toggle" class="p-1 rounded-full text-blue-200 hover:text-white focus:outline-none">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                        <button class="p-1 rounded-full text-blue-200 hover:text-white focus:outline-none">
+                            <span class="sr-only">View notifications</span>
+                            <i class="fas fa-bell text-xl"></i>
+                        </button>
+                        <button id="login-btn" class="ml-3 px-4 py-2 bg-white text-blue-600 rounded-md font-medium hover:bg-gray-100 transition">Login</button>
+                    </div>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-white focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-blue-700 pb-3">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 transition">Home</a>
+                <a href="#products" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 transition">Products</a>
+                <a href="#ar" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 transition">Virtual Try-On</a>
+                <a href="#admin" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 transition">Admin</a>
+                <button id="mobile-theme-toggle" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 transition">
+                    <i class="fas fa-moon dark:hidden mr-2"></i>
+                    <i class="fas fa-sun hidden dark:block mr-2"></i>
+                    Toggle Theme
+                </button>
+                <button id="mobile-login-btn" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium bg-white text-blue-600 hover:bg-gray-100 transition">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+        <div class="login-container rounded-xl p-8 max-w-md w-full relative">
+            <button id="close-login" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white">Welcome Back</h2>
+                <p class="text-blue-200 mt-2">Login to your OmniRetail AI account</p>
+            </div>
+            <form class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-white">Email</label>
+                    <input type="email" id="email" class="mt-1 block w-full px-4 py-3 bg-white bg-opacity-10 border border-blue-300 rounded-md text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-white">Password</label>
+                    <input type="password" id="password" class="mt-1 block w-full px-4 py-3 bg-white bg-opacity-10 border border-blue-300 rounded-md text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-white">Remember me</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-300 hover:text-blue-100">Forgot password?</a>
+                </div>
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">Sign in</button>
+            </form>
+            <div class="mt-6 text-center">
+                <p class="text-sm text-blue-200">
+                    Don't have an account? <a href="#" class="text-white font-medium hover:text-blue-100">Sign up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content - Index Page -->
+    <div id="home" class="relative overflow-hidden">
+        <!-- Animated background -->
+        <div id="vanta-bg" class="absolute inset-0 z-0"></div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div class="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+                <div class="mt-12 sm:mt-16 lg:mt-0">
+                    <div class="text-center lg:text-left">
+                        <h1 class="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+                            <span class="block">OmniRetail AI</span>
+                            <span class="block text-blue-200">Reimagining Retail</span>
+                        </h1>
+                        <p class="mt-3 text-base text-blue-100 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                            Intelligent technology transforming customer experience and operational efficiency for Walmart.
+                        </p>
+                        <div class="mt-8 sm:flex sm:justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4">
+                            <a href="#products" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-gray-100 md:py-4 md:text-lg md:px-10 transition transform hover:scale-105">
+                                Explore Products
+                            </a>
+                            <a href="#ar" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 bg-opacity-60 hover:bg-opacity-80 md:py-4 md:text-lg md:px-10 transition transform hover:scale-105">
+                                Try AR Experience
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0">
+                    <div class="relative ar-container">
+                        <img class="w-full rounded-xl shadow-2xl" src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="AR Shopping Experience">
+                        <div class="absolute inset-0 bg-blue-500 opacity-20 rounded-xl"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Section -->
+    <div id="products" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                    Featured Products
+                </h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Discover our AI-powered product recommendations
+                </p>
+            </div>
+            
+            <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <!-- Product Card Component 1 -->
+                <div class="card-3d bg-white rounded-xl shadow-md overflow-hidden transition duration-500 hover:shadow-xl">
+                    <div class="relative h-48 overflow-hidden">
+                        <img class="absolute inset-0 w-full h-full object-cover" src="https://images.unsplash.com/photo-1546868871-7041f2d55e0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Smart TV">
+                        <div class="absolute inset-0 bg-blue-500 opacity-0 hover:opacity-20 transition duration-300"></div>
+                        <span class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">SALE</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Samsung 55" QLED Smart TV</h3>
+                        <div class="mt-2 flex items-center">
+                            <div class="flex items-center text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">4.5 (128 reviews)</span>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <span class="text-lg font-bold text-gray-900">$699.99</span>
+                            <span class="text-sm text-gray-500 line-through">$899.99</span>
+                        </div>
+                        <button class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Product Card Component 2 -->
+                <div class="card-3d bg-white rounded-xl shadow-md overflow-hidden transition duration-500 hover:shadow-xl">
+                    <div class="relative h-48 overflow-hidden">
+                        <img class="absolute inset-0 w-full h-full object-cover" src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="MacBook Pro">
+                        <div class="absolute inset-0 bg-blue-500 opacity-0 hover:opacity-20 transition duration-300"></div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Apple MacBook Pro 14"</h3>
+                        <div class="mt-2 flex items-center">
+                            <div class="flex items-center text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">5.0 (256 reviews)</span>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-lg font-bold text-gray-900">$1,999.00</span>
+                        </div>
+                        <button class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Product Card Component 3 -->
+                <div class="card-3d bg-white rounded-xl shadow-md overflow-hidden transition duration-500 hover:shadow-xl">
+                    <div class="relative h-48 overflow-hidden">
+                        <img class="absolute inset-0 w-full h-full object-cover" src="https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Nike Shoes">
+                        <div class="absolute inset-0 bg-blue-500 opacity-0 hover:opacity-20 transition duration-300"></div>
+                        <span class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">NEW</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Nike Air Max 270</h3>
+                        <div class="mt-2 flex items-center">
+                            <div class="flex items-center text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">4.0 (87 reviews)</span>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-lg font-bold text-gray-900">$150.00</span>
+                        </div>
+                        <button class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Product Card Component 4 -->
+                <div class="card-3d bg-white rounded-xl shadow-md overflow-hidden transition duration-500 hover:shadow-xl">
+                    <div class="relative h-48 overflow-hidden">
+                        <img class="absolute inset-0 w-full h-full object-cover" src="https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Wireless Earbuds">
+                        <div class="absolute inset-0 bg-blue-500 opacity-0 hover:opacity-20 transition duration-300"></div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Sony WF-1000XM4 Earbuds</h3>
+                        <div class="mt-2 flex items-center">
+                            <div class="flex items-center text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">5.0 (312 reviews)</span>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <span class="text-lg font-bold text-gray-900">$279.99</span>
+                            <span class="text-sm text-gray-500 line-through">$299.99</span>
+                        </div>
+                        <button class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <a href="#" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition transform hover:scale-105">
+                    View All Products
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- AR Try-On Section -->
+    <div id="ar" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+                <div class="try-on-viewer">
+                    <div class="relative rounded-xl overflow-hidden shadow-2xl h-96">
+                        <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 opacity-90"></div>
+                        <div class="relative h-full flex items-center justify-center">
+                            <div class="text-center p-8">
+                                <h3 class="text-2xl font-bold text-white mb-4">Virtual Try-On</h3>
+                                <p class="text-blue-100 mb-6">See how products look in your space before you buy</p>
+                                <button class="bg-white text-blue-600 px-6 py-3 rounded-full font-bold hover:bg-gray-100 transition transform hover:scale-105", onclick="window.location.href='https://sneakyshade-omni-retail-tryon.streamlit.app/'">
+                                    <i class="fas fa-camera mr-2"></i> Start AR Experience
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12 lg:mt-0">
+                    <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                        Augmented Reality Shopping
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-500">
+                        Our AI-powered AR technology lets you visualize products in your home before purchasing. Try on clothes, see furniture in your space, and more!
+                    </p>
+                    <div class="mt-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                                <i class="fas fa-tshirt text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-900">Virtual Fitting Room</h3>
+                                <p class="mt-1 text-gray-500">Try on clothes virtually with accurate sizing and fit prediction.</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex items-start">
+                            <div class="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                                <i class="fas fa-couch text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-900">Furniture Placement</h3>
+                                <p class="mt-1 text-gray-500">See how furniture will look in your room with realistic 3D models.</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex items-start">
+                            <div class="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                                <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-900">Home Decor</h3>
+                                <p class="mt-1 text-gray-500">Visualize decor items in your space with accurate lighting and shadows.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Section -->
+    <div id="admin" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                    Admin Dashboard
+                </h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Manage your OmniRetail AI operations
+                </p>
+            </div>
+            
+            <div class="mt-12 bg-gray-50 rounded-xl shadow-md overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-4">
+                    <!-- Sidebar -->
+                    <div class="bg-gray-800 text-white p-4">
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold mb-4">Admin Menu</h3>
+                            <ul class="space-y-2">
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 rounded-md bg-gray-700">
+                                        <i class="fas fa-tachometer-alt mr-3"></i>
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-700">
+                                        <i class="fas fa-box-open mr-3"></i>
+                                        Products
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-700">
+                                        <i class="fas fa-users mr-3"></i>
+                                        Customers
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-700">
+                                        <i class="fas fa-chart-line mr-3"></i>
+                                        Analytics
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-700">
+                                        <i class="fas fa-cog mr-3"></i>
+                                        Settings
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Content -->
+                    <div class="md:col-span-3 p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <!-- Stats Card 1 -->
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                        <i class="fas fa-shopping-cart text-xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-gray-500">Total Sales</h3>
+                                        <p class="text-2xl font-bold">$24,780</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats Card 2 -->
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                        <i class="fas fa-users text-xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-gray-500">New Customers</h3>
+                                        <p class="text-2xl font-bold">1,248</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats Card 3 -->
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                        <i class="fas fa-robot text-xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-gray-500">AI Interactions</h3>
+                                        <p class="text-2xl font-bold">8,542</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Orders -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold mb-4">Recent Orders</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-78945</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">John Smith</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Delivered</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$249.99</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-78944</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sarah Johnson</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Processing</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$599.99</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-78943</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Michael Brown</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Shipped</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$1,299.99</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">OmniRetail AI</h3>
+                    <p class="text-gray-400">Revolutionizing retail with intelligent technology for Walmart.</p>
+                    <div class="mt-4 flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#products" class="text-gray-400 hover:text-white">Products</a></li>
+                        <li><a href="#ar" class="text-gray-400 hover:text-white">AR Experience</a></li>
+                        <li><a href="#admin" class="text-gray-400 hover:text-white">Admin</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">FAQs</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Newsletter</h3>
+                    <p class="text-gray-400 mb-4">Subscribe to our newsletter for the latest updates.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="px-4 py-2 w-full rounded-l-lg focus:outline-none text-gray-800">
+                        <button class="bg-blue-600 px-4 py-2 rounded-r-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <p>&copy; 2023 OmniRetail AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Enhanced Chatbot Component -->
+    <div class="fixed bottom-6 right-6 z-[9999]">
+        <!-- Floating Button -->
+        <button id="chatbot-button" class="w-16 h-16 bg-blue-600 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-all duration-300 animate-pulse">
+            <i class="fas fa-robot text-white text-2xl"></i>
+            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">AI</span>
+        </button>
+
+        <!-- Chatbot Window -->
+        <div id="chatbot-container" class="hidden absolute bottom-20 right-0 w-[350px] h-[500px] bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
+            <!-- Header -->
+            <div class="bg-blue-600 text-white p-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Shopping Assistant</h2>
+                    <p class="text-sm text-blue-100">Your personalized Walmart shopping companion</p>
+                </div>
+                <button id="close-chatbot" class="text-blue-200 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col">
+                <!-- Welcome message -->
+                <div class="chat-message bot p-4 max-w-xs">
+                    <p>👋 Hello! Welcome to the Walmart AI Chatbot!</p>
+                    <p class="mt-2">How are you today? 😊 How is your shopping going?</p>
+                    <p class="mt-2">You can ask me about Walmart products, prices, or recommendations.</p>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-700">
+                <div class="flex space-x-2">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="Type your message..." 
+                        class="flex-1 px-4 py-3 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 dark:text-white"
+                    >
+                    <button id="send-message" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <!-- Quick Replies -->
+                <div id="quick-replies" class="flex flex-wrap gap-2 mt-3">
+                    <button class="quick-reply-btn bg-blue-100 dark:bg-gray-600 hover:bg-blue-200 dark:hover:bg-gray-500 text-blue-800 dark:text-blue-300 text-sm px-3 py-1 rounded-lg transition">
+                        Show deals
+                    </button>
+                    <button class="quick-reply-btn bg-blue-100 dark:bg-gray-600 hover:bg-blue-200 dark:hover:bg-gray-500 text-blue-800 dark:text-blue-300 text-sm px-3 py-1 rounded-lg transition">
+                        Track order
+                    </button>
+                    <button class="quick-reply-btn bg-blue-100 dark:bg-gray-600 hover:bg-blue-200 dark:hover:bg-gray-500 text-blue-800 dark:text-blue-300 text-sm px-3 py-1 rounded-lg transition">
+                        Store hours
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Vanta.js background
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x3b82f6,
+            backgroundColor: 0x111827,
+            points: 12.00,
+            maxDistance: 20.00,
+            spacing: 15.00
+        });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Login modal toggle
+        const loginBtn = document.getElementById('login-btn');
+        const mobileLoginBtn = document.getElementById('mobile-login-btn');
+        const loginModal = document.getElementById('login-modal');
+        const closeLogin = document.getElementById('close-login');
+        
+        loginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+        });
+        
+        mobileLoginBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            loginModal.classList.remove('hidden');
+        });
+        
+        closeLogin.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Theme management
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+            updateThemeIcons();
+        }
+        
+        function updateThemeIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.querySelectorAll('.fa-moon, .fa-sun').forEach(icon => {
+                icon.classList.toggle('hidden', 
+                    (icon.classList.contains('fa-moon') && isDark) || 
+                    (icon.classList.contains('fa-sun') && !isDark)
+                );
+            });
+        }
+        
+        // Check for saved theme preference
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+        updateThemeIcons();
+        
+        // Theme toggles
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('mobile-theme-toggle').addEventListener('click', toggleTheme);
+
+        // =============================================
+        // CHATBOT FUNCTIONALITY
+        // =============================================
+        const chatbotButton = document.getElementById('chatbot-button');
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const closeChatbot = document.getElementById('close-chatbot');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendMessageBtn = document.getElementById('send-message');
+        const quickReplyBtns = document.querySelectorAll('.quick-reply-btn');
+
+        // Chat history state
+        let chatState = {
+            cart: {},
+            productLookup: {},
+            lastProducts: []
+        };
+
+        // Toggle chatbot visibility
+        chatbotButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            chatbotContainer.classList.toggle('hidden');
+        });
+        
+        closeChatbot.addEventListener('click', function() {
+            chatbotContainer.classList.add('hidden');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!chatbotContainer.contains(e.target) && e.target !== chatbotButton) {
+                chatbotContainer.classList.add('hidden');
+            }
+        });
+
+        // Add message to chat
+       // Replace the existing addMessage function with this:
+    function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message', isUser ? 'user' : 'bot', 'p-4');
+    
+     // Parse markdown to HTML
+         const htmlContent = marked.parse(content);
+         messageDiv.innerHTML = htmlContent;
+    
+    // Add custom classes to images
+        const images = messageDiv.querySelectorAll('img');
+        images.forEach(img => {
+            img.classList.add('max-w-full', 'h-auto', 'rounded-lg', 'my-2');
+        });
+    
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+        // Enhanced markdown to HTML parser for Walmart product results
+        function markdownToHtml(text) {
+            // Check if this is a product results response
+            if (text.includes('**🔍 Top Walmart Results:**')) {
+                return formatWalmartProducts(text);
+            }
+            
+            // General markdown parsing for non-product responses
+            return parseGeneralMarkdown(text);
+        }
+
+        // Specialized parser for Walmart product results
+        function formatWalmartProducts(text) {
+            // Split into individual products
+            const products = text.split('---');
+            
+            // Start building HTML
+            let html = '<div class="product-results">';
+            html += '<div class="font-bold text-lg mb-3">🔍 Top Walmart Results:</div>';
+            
+            // Process each product
+            for (const product of products) {
+                // Skip empty products
+                if (!product.trim()) continue;
+                
+                // Extract product components
+                const titleMatch = product.match(/\*\*(\d+\. .*?)\*\*/);
+                const imageMatch = product.match(/!\[Product Image]\((.*?)\)/);
+                const priceMatch = product.match(/💰 \*\*Price:\*\* (.*?)(\n|$)/);
+                const ratingMatch = product.match(/⭐ \*\*Rating:\*\* (.*?)(\n|$)/);
+                const offerMatch = product.match(/🏷️ \*\*Offer:\*\* (.*?)(\n|$)/);
+                const linkMatch = product.match(/🔗 \[Buy Now on Walmart]\((.*?)\)/);
+                const cartMatch = product.match(/_Add to cart: `(.*?)`_/);
+                
+                // Skip if we don't have basic info
+                if (!titleMatch && !imageMatch) continue;
+                
+                html += '<div class="product-result">';
+                
+                // Add title
+                if (titleMatch) {
+                    html += `<div class="product-title">${titleMatch[1]}</div>`;
+                }
+                
+                // Add image
+                if (imageMatch) {
+                    html += `<img src="${imageMatch[1]}" class="chat-image" alt="Product">`;
+                }
+                
+                // Add price
+                if (priceMatch) {
+                    html += `<div class="product-price">${priceMatch[1]}</div>`;
+                }
+                
+                // Add rating with stars
+                if (ratingMatch) {
+                    let ratingHtml = ratingMatch[1];
+                    // Convert star symbols to icons
+                    ratingHtml = ratingHtml.replace(/★/g, '<i class="fas fa-star text-yellow-400"></i>')
+                                          .replace(/☆/g, '<i class="far fa-star text-yellow-400"></i>');
+                    html += `<div class="product-rating">${ratingHtml}</div>`;
+                }
+                
+                // Add offer
+                if (offerMatch) {
+                    html += `<div class="product-offer">${offerMatch[1]}</div>`;
+                }
+                
+                // Add buy link
+                if (linkMatch) {
+                    html += `<a href="${linkMatch[1]}" target="_blank" class="buy-link">`;
+                    html += '<i class="fas fa-shopping-cart mr-2"></i> Buy Now on Walmart';
+                    html += '</a>';
+                }
+                
+                // Add cart hint
+                if (cartMatch) {
+                    html += `<div class="add-to-cart-hint">${cartMatch[1]}</div>`;
+                }
+                
+                html += '</div>'; // Close product-result
+            }
+            
+            html += '</div>'; // Close product-results
+            return html;
+        }
+
+        // General markdown parser for non-product responses
+        function parseGeneralMarkdown(text) {
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/!\[Product Image]\((.*?)\)/g, '<img src="$1" class="chat-image" alt="Product Image">');
+            text = text.replace(/\[(.*?)]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:underline">$1</a>');
+            text = text.replace(/💰/g, '<i class="fas fa-money-bill-wave mr-1"></i>');
+            text = text.replace(/⭐/g, '<i class="fas fa-star mr-1"></i>');
+            text = text.replace(/🏷️/g, '<i class="fas fa-tag mr-1"></i>');
+            text = text.replace(/🔗/g, '<i class="fas fa-link mr-1"></i>');
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.classList.add('chat-message', 'bot', 'p-4', 'max-w-xs');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="chat-typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Send message to backend
+        async function sendToChatbot(message) {
+            showTypingIndicator();
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        state: chatState
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                hideTypingIndicator();
+                
+                // Update chat state
+                chatState = data.state || {};
+                
+                // Add bot response
+                addMessage(data.response, false);
+                
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Error:', error);
+                addMessage("Sorry, I'm having trouble connecting. Please try again later.", false);
+            }
+        }
+
+        // Send message on button click
+        sendMessageBtn.addEventListener('click', function() {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                chatInput.value = '';
+                sendToChatbot(message);
+            }
+        });
+
+        // Send message on Enter key
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const message = chatInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    chatInput.value = '';
+                    sendToChatbot(message);
+                }
+            }
+        });
+
+        // Quick reply buttons
+        quickReplyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const message = this.textContent.trim();
+                addMessage(message, true);
+                sendToChatbot(message);
+            });
+        });
+
+        // Initial welcome message
+        window.addEventListener('load', function() {
+            // Already have a welcome message in HTML
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

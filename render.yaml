@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: walmart-spark
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --timeout 300 spark.app:app  # Increased timeout
+    envVars:
+      - key: FLASK_ENV
+        value: production
+     
